@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="test">Test</string>
+    <string name="connect">Refresh</string>
+    <string name="peer">admin</string>
+    <string name="account">wonsuck_song@lazybird.kr</string>
+    <string name="password">Hotice1234!</string>
+    <string name="host">wss://dermaster.io/ws</string>
+
+    <string name="title_activity_stream">stream</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+</resources>
