@@ -5,8 +5,16 @@ import android.content.Context
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.WindowManager
+import org.json.JSONException
+import org.json.JSONObject
 import org.webrtc.*
 import java.util.*
+import org.webrtc.MediaConstraints
+import org.webrtc.PeerConnection
+import java.nio.charset.Charset
+import org.webrtc.DataChannel
+import java.nio.ByteBuffer
+
 
 class WebRTC internal constructor(private val callbacks: WebRTCCallbacks) : PeerConnection.Observer, WebRTCInterface {
 
@@ -22,16 +30,32 @@ class WebRTC internal constructor(private val callbacks: WebRTCCallbacks) : Peer
             private val TAG = "SkeletalSdpObserver"
         }
     }
+    private abstract class SkeletalDataChannelObserver : DataChannel.Observer {
+        override fun onMessage(p0: DataChannel.Buffer?) {}
+
+        override fun onStateChange() {}
+
+        override fun onBufferedAmountChange(p0: Long) {}
+    }
 
     private var peerConnection: PeerConnection? = null
+    private var mDataChannel: DataChannel? = null
 
     init {
 
         // create PeerConnection
+
         val iceServers = Arrays.asList(PeerConnection.IceServer("stun:stun.l.google.com:19302"))
         //val iceServers = Arrays.asList(PeerConnection.IceServer("stun:172.10.24.74:19302"))
         peerConnection = factory!!.createPeerConnection(iceServers, WebRTCUtil.peerConnectionConstraints(), this)
 //        peerConnection!!.addStream(localStream)
+
+    }
+
+    override fun sendData(data: JSONObject) {
+        val message = data.toString()
+        val data = ByteBuffer.wrap("$message".toByteArray(Charset.defaultCharset()))
+        mDataChannel!!.send(DataChannel.Buffer(data, false))
     }
 
     override fun createOffer() {
@@ -45,6 +69,7 @@ class WebRTC internal constructor(private val callbacks: WebRTCCallbacks) : Peer
 
                 }, sessionDescription)
             }
+
         }, WebRTCUtil.offerConnectionConstraints())
     }
 
@@ -97,13 +122,49 @@ class WebRTC internal constructor(private val callbacks: WebRTCCallbacks) : Peer
         peerConnection = null
     }
 
-    // PeerConnection.Observer -----
 
     override fun onSignalingChange(signalingState: PeerConnection.SignalingState) {}
     override fun onIceConnectionChange(iceConnectionState: PeerConnection.IceConnectionState) {}
     override fun onIceConnectionReceivingChange(b: Boolean) {}
     override fun onRemoveStream(mediaStream: MediaStream) {}
-    override fun onDataChannel(dataChannel: DataChannel) {}
+    override fun onDataChannel(dataChannel: DataChannel) {
+        Log.d("SWS", "onDataChannel $dataChannel")
+        mDataChannel = dataChannel
+        dataChannel.registerObserver(object : SkeletalDataChannelObserver() {
+            override fun onBufferedAmountChange(p0: Long) {
+                Log.d("SWS", "channel buffered amount change:{$p0}")
+            }
+
+            override fun onMessage(p0: DataChannel.Buffer?) {
+                Log.d("SWS", "onMessage $dataChannel")
+                val buf = p0?.data
+                if (buf != null) {
+                    val byteArray = ByteArray(buf.remaining())
+                    buf.get(byteArray)
+                    val received = String(byteArray, Charset.forName("UTF-8"))
+                    Log.d("SWS", "received: $received")
+//                    try {
+//                        val message = JSONObject(received).getString("data")
+//                        Log.d("SWS", "&gt;$message")
+//                    } catch (e: JSONException) {
+//                        Log.d("SWS", "Malformed message received")
+//                    }
+                }
+            }
+
+            override fun onStateChange() {
+                Log.d("SWS", "Channel state changed: ${dataChannel.label()} ${dataChannel.state()?.name}")
+                if (dataChannel.state() == DataChannel.State.OPEN) {
+                    Log.d("SWS", "Data Channel established.")
+//                    val message : String = "Hello, World!"
+//                    val data = ByteBuffer.wrap("$message".toByteArray(Charset.defaultCharset()))
+//                    dataChannel.send(DataChannel.Buffer(data, false))
+                } else {
+                    Log.d("SWS", "Chat ended.")
+                }
+            }
+        })
+    }
     override fun onRenegotiationNeeded() {}
     override fun onAddTrack(rtpReceiver: RtpReceiver, mediaStreams: Array<MediaStream>) {}
     override fun onIceCandidatesRemoved(iceCandidates: Array<IceCandidate>) {}

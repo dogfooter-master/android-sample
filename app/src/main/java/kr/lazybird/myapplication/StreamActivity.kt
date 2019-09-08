@@ -12,6 +12,7 @@ import kotlin.NullPointerException
 import android.view.WindowManager
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_stream.*
+import org.json.JSONObject
 
 
 class StreamActivity : AppCompatActivity() {
@@ -19,6 +20,8 @@ class StreamActivity : AppCompatActivity() {
     private val connectionList = ArrayList<Connection>()
     private var mDerMateWebSocket: DerMateWebSocket? = null
     private val eglBase = EglBase.create()
+    private var lastX: Float = 0.0f
+    private var lastY: Float = 0.0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,13 +37,36 @@ class StreamActivity : AppCompatActivity() {
         )
         setContentView(R.layout.activity_stream)
         remote_view_container.setOnTouchListener { _: View, event:MotionEvent ->
-            Log.d("SWS", "setOnTouchListener $event")
+            val v = findViewById<RelativeLayout>(R.id.remote_view_container)
+//            Log.d("SWS", "setOnTouchListener ${event.x}, ${event.y}, ${v.width}, ${v.height}")
+            val tempX = lastX
+            val tempY = lastY
+            lastX = event.x
+            lastY = event.y
+            val posX = event.x / v.width.toFloat()
+            val posY = event.y / v.height.toFloat()
+            Log.d("SWS", "setOnTouchListener $posX, $posY")
+            var data = JSONObject()
+            data.put("x", posX.toString())
+            data.put("y", posY.toString())
+            val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
             when(event.action) {
                 MotionEvent.ACTION_DOWN -> {
+                    data.put("command", "mouse_down")
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, "")
+//                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
                 }
                 MotionEvent.ACTION_MOVE -> {
+                    data.put("command", "mouse_move")
+                    if ( tempX != event.x || tempY != event.y ) {
+                        mDerMateWebSocket!!.sendWebRTCDataChannel(data, "")
+//                        mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+                    }
                 }
                 MotionEvent.ACTION_UP -> {
+                    data.put("command", "mouse_up")
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, "")
+//                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
                 }
             }
             true
@@ -56,8 +82,8 @@ class StreamActivity : AppCompatActivity() {
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         val text  = "(${event?.x}, ${event?.y})"
-        Log.d("SWS", "onTouchEvent: $text")
-        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+        val v = findViewById<RelativeLayout>(R.id.remote_view_container)
+        Log.d("SWS", "onTouchEvent: $text, ${v.width}, ${v.height}")
         return super.onTouchEvent(event)
     }
 
@@ -96,9 +122,9 @@ class StreamActivity : AppCompatActivity() {
         }
         WebRTC.setup(this, eglBase)
 
-        val account = intent.getStringExtra(EXTRA_ACCOUNT)
-        val password = intent.getStringExtra(EXTRA_PASSWORD)
-        mDerMateWebSocket = DerMateWebSocket("wss://dermaster.io/ws", account, password)
+        val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
+        val targetToken = intent.getStringExtra(EXTRA_TARGET_TOKEN)
+        mDerMateWebSocket = DerMateWebSocket(resources.getString(R.string.host), accessToken, targetToken)
         val conn = createConnection()
         mDerMateWebSocket!!.connect(conn)
     }
@@ -106,7 +132,7 @@ class StreamActivity : AppCompatActivity() {
     private var remoteIndex = 0
 
     private fun createConnection(): Connection {
-        val connection = Connection("", "", mDerMateWebSocket!!, object : ConnectionCallbacks {
+        val connection = Connection("", "", "", mDerMateWebSocket!!, object : ConnectionCallbacks {
             override fun onAddedStream(mediaStream: MediaStream) {
                 Log.d("SWS", "onAddedStream")
                 if (mediaStream.videoTracks.size == 0) {

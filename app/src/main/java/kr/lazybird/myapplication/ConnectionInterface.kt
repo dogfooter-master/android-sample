@@ -1,5 +1,6 @@
 package kr.lazybird.myapplication
 
+import org.json.JSONObject
 import org.webrtc.MediaStream
 
 internal interface ConnectionCallbacks {
@@ -14,10 +15,14 @@ interface ConnectionInterface {
     fun setTargetToken(targetToken: String)
     fun accessToken(): String
     fun setAccessToken(accessToken: String)
-    fun publishOffer()
-    fun receiveOffer(sdp: String)
-    fun receiveAnswer(sdp: String)
-    fun receiveCandidate(candidate: String, sdpMid: String, sdpMLineIndex: Int)
-    fun close()
+    fun clientToken(): String
+    fun setClientToken(clientToken: String)
+    fun publishOffer(channelType: String, label: String)
+    fun receiveOffer(channelType: String, label: String, sdp: String)
+    fun receiveAnswer(channelType: String, label: String, sdp: String)
+    fun receiveCandidate(channelType: String, label: String, candidate: String, sdpMid: String, sdpMLineIndex: Int)
+    fun sendData(data: JSONObject)
+    fun sendDataControl(data: JSONObject)
+    fun close(channelType: String, label: String)
 
 }

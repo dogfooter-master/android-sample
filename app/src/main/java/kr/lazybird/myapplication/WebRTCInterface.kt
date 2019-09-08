@@ -1,5 +1,6 @@
 package kr.lazybird.myapplication
 
+import org.json.JSONObject
 import org.webrtc.MediaStream
 
 internal interface WebRTCCallbacks {
@@ -17,6 +18,7 @@ interface WebRTCInterface {
     fun receiveOffer(sdp: String)
     fun receiveAnswer(sdp: String)
     fun receiveCandidate(sdp: String, sdpMid: String, sdpMLineIndex: Int)
+    fun sendData(data: JSONObject)
     fun close()
 
 }

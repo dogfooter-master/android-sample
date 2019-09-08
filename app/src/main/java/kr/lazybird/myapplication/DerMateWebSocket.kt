@@ -15,9 +15,14 @@ import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.*
 
-class DerMateWebSocket internal constructor(private var host: String, private val account: String, private val password: String) :
+class DerMateWebSocket internal constructor(
+    private var host: String,
+    private val accessToken: String,
+    private val targetToken: String
+) :
     DerMateWebSocketInterface {
     private lateinit var mConnection: WebSocket
+    private lateinit var mWebRTCConnection: ConnectionInterface
 
     // interface -------
     private class DefaultTrustManager : X509TrustManager {
@@ -31,6 +36,17 @@ class DerMateWebSocket internal constructor(private var host: String, private va
 
         override fun getAcceptedIssuers(): Array<X509Certificate> {
             return arrayOf()
+        }
+    }
+
+    override fun sendWebRTCDataChannel(data: JSONObject, label: String) {
+        when ( label ) {
+            accessToken -> {
+                mWebRTCConnection.sendData(data)
+            }
+            else -> {
+                mWebRTCConnection.sendDataControl(data)
+            }
         }
     }
 
@@ -54,7 +70,8 @@ class DerMateWebSocket internal constructor(private var host: String, private va
             .url(HandshakeEndpoint)
             .build()
 
-        val wsListener = EchoWebSocketListener(account, password, connection)
+        mWebRTCConnection = connection
+        val wsListener = EchoWebSocketListener(accessToken, targetToken, connection)
         mConnection = client.newWebSocket(request, wsListener)
     }
 
@@ -62,26 +79,30 @@ class DerMateWebSocket internal constructor(private var host: String, private va
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun publishOffer(accessToken: String, targetToken: String, sdp: JSONObject) {
+    override fun publishOffer(accessToken: String, targetToken: String, sdp: JSONObject, channelType: String, label: String) {
         val json = JSONObject()
         val payload = JSONObject()
         payload.put("category", "ws")
         payload.put("service", "Offer")
         payload.put("access_token", accessToken)
         payload.put("opponent_client_token", targetToken)
+        payload.put("channel_type", channelType)
+        payload.put("label", label)
         payload.put("sdp", sdp)
         json.put("data", payload)
         Log.d("SWS", json.toString())
         mConnection.send(json.toString())
     }
 
-    override fun publishAnswer(accessToken: String, targetToken: String, sdp: JSONObject) {
+    override fun publishAnswer(accessToken: String, targetToken: String, sdp: JSONObject, channelType: String, label: String) {
         val json = JSONObject()
         val payload = JSONObject()
         payload.put("category", "ws")
         payload.put("service", "Answer")
         payload.put("access_token", accessToken)
         payload.put("opponent_client_token", targetToken)
+        payload.put("channel_type", channelType)
+        payload.put("label", label)
         payload.put("sdp", sdp)
         json.put("data", payload)
 
@@ -89,7 +110,7 @@ class DerMateWebSocket internal constructor(private var host: String, private va
         mConnection.send(json.toString())
     }
 
-    override fun publishCandidate(accessToken: String, targetToken: String, candidate: JSONObject) {
+    override fun publishCandidate(accessToken: String, targetToken: String, candidate: JSONObject, channelType: String, label: String) {
         val json = JSONObject()
         val payload = JSONObject()
         val c = JSONObject()
@@ -101,6 +122,8 @@ class DerMateWebSocket internal constructor(private var host: String, private va
         payload.put("service", "Candidate")
         payload.put("access_token", accessToken)
         payload.put("opponent_client_token", targetToken)
+        payload.put("channel_type", channelType)
+        payload.put("label", label)
         payload.put("candidate", c)
 
         json.put("data", payload)
@@ -113,8 +136,8 @@ class DerMateWebSocket internal constructor(private var host: String, private va
         mConnection.close(1000, "")
     }
     private class EchoWebSocketListener(
-        val account: String,
-        val password: String,
+        val accessToken: String,
+        val targetToken: String,
         val connection: ConnectionInterface
     ) :
         WebSocketListener() {
@@ -124,9 +147,9 @@ class DerMateWebSocket internal constructor(private var host: String, private va
             Log.d("SWS", "DEBUG1")
 
             payloadObject.put("category", "ws")
-            payloadObject.put("service", "SignIn")
-            payloadObject.put("account", account)
-            payloadObject.put("password", password)
+            payloadObject.put("service", "Register")
+            payloadObject.put("client_type", "android")
+            payloadObject.put("access_token", accessToken)
 
             jsonObject.put("data", payloadObject)
             webSocket.send(jsonObject.toString())
@@ -140,38 +163,88 @@ class DerMateWebSocket internal constructor(private var host: String, private va
             val payload = json.getJSONObject("data")
 
             val service = payload.getString("service")
-            if (service == "Offer") {
-                val sdp = payload.getJSONObject("sdp")
-                connection.receiveOffer(sdp.getString("sdp"))
-            } else if (service == "Candidate") {
-                val candidate = payload.getJSONObject("candidate")
-                val candidateInCandidate = candidate.getJSONObject("candidate")
-                connection.receiveCandidate(
-                    candidateInCandidate.getString("candidate"),
-                    candidateInCandidate.getString("sdpMid"),
-                    candidateInCandidate.getInt("sdpMLineIndex")
-                )
-            } else if (service == "RequestOffer") {
-                connection.publishOffer()
-                val targetClientToken = payload.getString("opponent_client_token")
-                connection.setTargetToken(targetClientToken)
-            } else if (service == "Answer") {
-                val sdp = payload.getJSONObject("sdp")
-                connection.receiveAnswer(sdp.getString("sdp"))
-            } else if (service == "SignIn") {
-                val jsonObject = JSONObject()
-                Log.d("SWS", "DEBUG: SIgnIn")
-                connection.setAccessToken(payload.getString("access_token"))
 
-                val sendJson = json.getJSONObject("data")
+            when (service) {
+                "Offer" -> {
+                    val sdp = payload.getJSONObject("sdp")
+                    val channelType = payload.getString("channel_type")
+                    val label = payload.getString("label")
+                    connection.receiveOffer(channelType, label, sdp.getString("sdp"))
+                }
+                "Candidate" -> {
+                    val channelType = payload.getString("channel_type")
+                    val label = payload.getString("label")
+                    val candidate = payload.getJSONObject("candidate")
+                    val candidateInCandidate = candidate.getJSONObject("candidate")
+                    connection.receiveCandidate(
+                        channelType,
+                        label,
+                        candidateInCandidate.getString("candidate"),
+                        candidateInCandidate.getString("sdpMid"),
+                        candidateInCandidate.getInt("sdpMLineIndex")
+                    )
+                }
+                "RequestOffer" -> {
+                    val channelType = payload.getString("channel_type")
+                    val label = payload.getString("label")
+                    connection.publishOffer(channelType, label)
+                    val targetClientToken = payload.getString("opponent_client_token")
+                    connection.setTargetToken(targetClientToken)
+                }
+                "Answer" -> {
+                    val channelType = payload.getString("channel_type")
+                    val label = payload.getString("label")
+                    val sdp = payload.getJSONObject("sdp")
+                    connection.receiveAnswer(channelType, label, sdp.getString("sdp"))
+                }
+                "SignIn" -> {
+                    val jsonObject = JSONObject()
+                    Log.d("SWS", "DEBUG: SIgnIn")
+                    connection.setAccessToken(payload.getString("access_token"))
 
-                sendJson.put("category", "ws")
-                sendJson.put("service", "RegisterMate")
-                sendJson.put("client_type", "mate")
-                sendJson.put("access_token", connection.accessToken())
+                    val sendJson = json.getJSONObject("data")
 
-                jsonObject.put("data", sendJson)
-                webSocket!!.send(jsonObject.toString())
+                    sendJson.put("category", "ws")
+                    sendJson.put("service", "RegisterMate")
+                    sendJson.put("client_type", "mate")
+                    sendJson.put("access_token", connection.accessToken())
+
+                    jsonObject.put("data", sendJson)
+                    webSocket!!.send(json.toString())
+                }
+                "RegisterComplete" -> {
+                    Log.d("SWS", "DEBUG: RegisterComplete")
+                    connection.setAccessToken(accessToken)
+                    connection.setTargetToken(targetToken)
+                    connection.setClientToken(payload.getString("client_token"))
+                    connection.publishOffer("stream", "")
+                    connection.setTargetToken(targetToken)
+                }
+                /*
+                val msgType = json.getString("type")
+                if (msgType == "login") {
+                    val msgSuccess = json.getBoolean("success")
+                    if (msgSuccess) {
+                        connection.publishOffer()
+                    }
+                } else if (msgType == "candidate") {
+                    val msg = JSONObject(text)
+                    val candidate = JSONObject(msg.getString("candidate"))
+                    connection.receiveCandidate(
+                        candidate.getString("candidate"),
+                        candidate.getString("sdpMid"),
+                        candidate.getInt("sdpMLineIndex")
+                    )
+                } else if (msgType == "answer") {
+                    val msg = JSONObject(text)
+                    val sdp = JSONObject(msg.getString("answer"))
+                    connection.receiveAnswer(sdp.getString("sdp"))
+                } else if (msgType == "offer") {
+                    val msg = JSONObject(text)
+                    val offer = JSONObject(msg.getString("offer"))
+                    connection.receiveOffer(offer.getString("sdp"))
+                }
+                */
             }
             /*
             val msgType = json.getString("type")
