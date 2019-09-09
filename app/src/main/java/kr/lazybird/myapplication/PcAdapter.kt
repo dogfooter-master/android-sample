@@ -1,14 +1,14 @@
 package kr.lazybird.myapplication
 
 import android.content.Context
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.pc_list_item.view.*
 
-class PcAdapter(val items : ArrayList<Agent>, val context: Context) : RecyclerView.Adapter<ViewHolder>() {
+class PcAdapter(val items : ArrayList<Agent>, val context: Context) : androidx.recyclerview.widget.RecyclerView.Adapter<ViewHolder>() {
     interface ItemClick
     {
         fun onClick(view: View, position: Int)
@@ -35,7 +35,7 @@ class PcAdapter(val items : ArrayList<Agent>, val context: Context) : RecyclerVi
     }
 }
 
-class ViewHolder (view: View) : RecyclerView.ViewHolder(view) {
+class ViewHolder (view: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
     // Holds the TextView that will add each animal to
     val tvPcType = view.tv_pc_type
 }

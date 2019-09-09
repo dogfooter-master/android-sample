@@ -3,7 +3,7 @@ package kr.lazybird.myapplication
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
 import android.view.WindowManager
 import kr.lazybird.myapplication.ui.login.LoginActivity
@@ -16,6 +16,7 @@ const val EXTRA_ACCOUNT = "kr.lazybird.myapplication.ACCOUNT"
 const val EXTRA_PASSWORD = "kr.lazybird.myapplication.PASSWORD"
 const val EXTRA_ACCESS_TOKEN = "kr.lazybird.myapplication.ACCESS_TOKEN"
 const val EXTRA_TARGET_TOKEN = "kr.lazybird.myapplication.CLIENT_TOKEN"
+const val EXTRA_FINISH = "kr.lazybird.myapplication.FINISH"
 const val REQUEST_CODE_LOGIN = 1
 const val REQUEST_CODE_AGENT_LIST = 2
 
@@ -71,6 +72,11 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == REQUEST_CODE_LOGIN) {
             // Make sure the request was successful
             if (resultCode == Activity.RESULT_OK) {
+                val finish = data!!.getBooleanExtra(EXTRA_FINISH, false)
+                if ( finish ) {
+                    finish()
+                    return
+                }
                 val account = data!!.getStringExtra(EXTRA_ACCOUNT)
                 val accessToken = data!!.getStringExtra(EXTRA_ACCESS_TOKEN)
                 Log.d("SWS", "--> account: $account, accessToken: $accessToken")

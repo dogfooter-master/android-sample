@@ -1,7 +1,7 @@
 package kr.lazybird.myapplication
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -10,9 +10,12 @@ import android.widget.RelativeLayout
 import org.webrtc.*
 import kotlin.NullPointerException
 import android.view.WindowManager
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_stream.*
 import org.json.JSONObject
+import kotlin.math.max
+import kotlin.math.min
+import android.view.ViewGroup
+import kotlin.math.abs
 
 
 class StreamActivity : AppCompatActivity() {
@@ -22,6 +25,10 @@ class StreamActivity : AppCompatActivity() {
     private val eglBase = EglBase.create()
     private var lastX: Float = 0.0f
     private var lastY: Float = 0.0f
+    private var downRawX: Float = 0.0f
+    private var downRawY: Float = 0.0f
+    private var dX: Float = 0.0f
+    private var dY: Float = 0.0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +77,70 @@ class StreamActivity : AppCompatActivity() {
                 }
             }
             true
+        }
+        fab_main.setOnTouchListener { v: View, event:MotionEvent ->
+
+            when(event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    downRawX = event.rawX
+                    downRawY = event.rawY
+                    dX = v.x - downRawX
+                    dY = v.y - downRawY
+                }
+                MotionEvent.ACTION_MOVE -> {
+
+                    Log.d("SWS", "fab_main setOnTouchListener before ($dX, $dY), (${v.x}, ${v.y}) ${event.x} ${event.y}")
+                    val viewParent = v.parent as View
+                    val parentWidth = viewParent.width
+                    val parentHeight = viewParent.height
+
+                    var newX = event.rawX + dX
+                    newX = max(
+                        16.0f,
+                        newX
+                    ) // Don't allow the FAB past the left hand side of the parent
+                    newX = min(
+                        parentWidth - 64.0f,
+                        newX
+                    ) // Don't allow the FAB past the right hand side of the parent
+
+                    var newY = event.rawY + dY
+                    newY = max(
+                        16.0f,
+                        newY
+                    ) // Don't allow the FAB past the top of the parent
+                    newY = min(
+                        parentHeight - 64.0f,
+                        newY
+                    ) // Don't allow the FAB past the bottom of the parent
+
+                    v.x = newX
+                    v.y = newY
+//                    v.animate()
+//                        .x(newX)
+//                        .y(newY)
+//                        .setDuration(0)
+//                        .start()
+
+                    if (v.layoutParams is ViewGroup.MarginLayoutParams) {
+                        val p = v.layoutParams as ViewGroup.MarginLayoutParams
+                        p.setMargins(16, 16, 16, 16)
+                        v.requestLayout()
+                    }
+                }
+                MotionEvent.ACTION_UP -> {
+                    val upRawX = event.x
+                    val upRawY = event.y
+
+                    val upDX = upRawX - downRawX
+                    val upDY = upRawY - downRawY
+
+                    if (abs(upDX) < 1.0f && abs(upDY) < 1.0f) { // A click
+                        Log.d("SWS", "Click")
+                    }
+                }
+            }
+            false
         }
 //        checkPermission()
         connectStreamServer()
@@ -172,5 +243,13 @@ class StreamActivity : AppCompatActivity() {
 
         connectionList.add(connection)
         return connection
+    }
+    override fun onBackPressed() {
+        mDerMateWebSocket!!.close()
+//        eglBase.detachCurrent()
+//        eglBase.releaseSurface()
+//        eglBase.release()
+        finish()
+        super.onBackPressed()
     }
 }

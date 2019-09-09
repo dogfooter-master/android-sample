@@ -1,9 +1,9 @@
 package kr.lazybird.myapplication
 
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.support.v7.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -30,7 +30,8 @@ class ScrollingActivity : AppCompatActivity() {
                     for (e in payload.agentList) {
                         pcList.add(e)
                         // Creates a vertical Layout Manager
-                        pc_list.layoutManager = LinearLayoutManager(this)
+                        pc_list.layoutManager =
+                            androidx.recyclerview.widget.LinearLayoutManager(this)
 
                         // You can use GridLayoutManager if you want multiple columns. Enter the number of columns as a parameter.
 //        rv_animal_list.layoutManager = GridLayoutManager(this, 2)
@@ -55,5 +56,9 @@ class ScrollingActivity : AppCompatActivity() {
                 Log.d("SWS", "DEBUG-2 $message")
             }
         }
+    }
+    override fun onBackPressed() {
+        finish()
+        super.onBackPressed()
     }
 }

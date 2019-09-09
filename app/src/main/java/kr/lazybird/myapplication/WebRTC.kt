@@ -145,6 +145,7 @@ class WebRTC internal constructor(private val callbacks: WebRTCCallbacks) : Peer
 
     override fun close() {
 //        peerConnection!!.removeStream(WebRTC.localStream)
+        Log.d("SWS", "$peerConnection closed")
         peerConnection!!.close()
         peerConnection = null
     }

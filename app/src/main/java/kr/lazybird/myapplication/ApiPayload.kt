@@ -1,6 +1,6 @@
 package kr.lazybird.myapplication
 
-import android.support.annotation.StringRes
+import androidx.annotation.StringRes
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 

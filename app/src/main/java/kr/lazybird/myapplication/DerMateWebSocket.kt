@@ -133,6 +133,8 @@ class DerMateWebSocket internal constructor(
     }
 
     override fun close() {
+        mWebRTCConnection!!.close("stream", accessToken)
+        mWebRTCConnection!!.close("data", accessToken)
         mConnection.close(1000, "")
     }
     private class EchoWebSocketListener(
