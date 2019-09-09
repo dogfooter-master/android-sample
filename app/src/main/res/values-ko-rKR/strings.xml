@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="action_sign_in">회원가입 또는 로그인</string>
+    <string name="welcome">환영합니다!</string>
+</resources>

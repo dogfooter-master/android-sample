@@ -14,6 +14,7 @@ import org.webrtc.PeerConnection
 import java.nio.charset.Charset
 import org.webrtc.DataChannel
 import java.nio.ByteBuffer
+import kotlin.collections.ArrayList
 
 
 class WebRTC internal constructor(private val callbacks: WebRTCCallbacks) : PeerConnection.Observer, WebRTCInterface {
@@ -45,8 +46,34 @@ class WebRTC internal constructor(private val callbacks: WebRTCCallbacks) : Peer
 
         // create PeerConnection
 
-        val iceServers = Arrays.asList(PeerConnection.IceServer("stun:stun.l.google.com:19302"))
+//        val iceServers = Arrays.asList(PeerConnection.IceServer("stun:stun.l.google.com:19302"))
         //val iceServers = Arrays.asList(PeerConnection.IceServer("stun:172.10.24.74:19302"))
+        val iceServers = ArrayList<PeerConnection.IceServer>()
+
+        var iceServerBuilder = PeerConnection.IceServer.builder("stun:stun.l.google.com:19302")
+        iceServerBuilder.setTlsCertPolicy(PeerConnection.TlsCertPolicy.TLS_CERT_POLICY_INSECURE_NO_CHECK)
+        var iceServer = iceServerBuilder.createIceServer()
+        iceServers.add(iceServer)
+
+        iceServerBuilder = PeerConnection.IceServer.builder("stun:flowork.ai:3478")
+        iceServerBuilder.setTlsCertPolicy(PeerConnection.TlsCertPolicy.TLS_CERT_POLICY_INSECURE_NO_CHECK)
+        iceServer = iceServerBuilder.createIceServer()
+        iceServers.add(iceServer)
+
+        iceServerBuilder = PeerConnection.IceServer.builder("turn:flowork.ai:3478?transport=udp")
+        iceServerBuilder.setTlsCertPolicy(PeerConnection.TlsCertPolicy.TLS_CERT_POLICY_INSECURE_NO_CHECK)
+        iceServerBuilder.setUsername("flowork")
+        iceServerBuilder.setPassword("Hotice1234!")
+        iceServer = iceServerBuilder.createIceServer()
+        iceServers.add(iceServer)
+
+        iceServerBuilder = PeerConnection.IceServer.builder("turn:flowork.ai:3478?transport=tcp")
+        iceServerBuilder.setTlsCertPolicy(PeerConnection.TlsCertPolicy.TLS_CERT_POLICY_INSECURE_NO_CHECK)
+        iceServerBuilder.setUsername("flowork")
+        iceServerBuilder.setPassword("Hotice1234!")
+        iceServer = iceServerBuilder.createIceServer()
+        iceServers.add(iceServer)
+
         peerConnection = factory!!.createPeerConnection(iceServers, WebRTCUtil.peerConnectionConstraints(), this)
 //        peerConnection!!.addStream(localStream)
 

@@ -53,20 +53,20 @@ class StreamActivity : AppCompatActivity() {
             when(event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     data.put("command", "mouse_down")
-                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, "")
-//                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+//                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, "")
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
                 }
                 MotionEvent.ACTION_MOVE -> {
                     data.put("command", "mouse_move")
                     if ( tempX != event.x || tempY != event.y ) {
-                        mDerMateWebSocket!!.sendWebRTCDataChannel(data, "")
-//                        mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+//                        mDerMateWebSocket!!.sendWebRTCDataChannel(data, "")
+                        mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
                     }
                 }
                 MotionEvent.ACTION_UP -> {
                     data.put("command", "mouse_up")
-                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, "")
-//                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+//                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, "")
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
                 }
             }
             true
