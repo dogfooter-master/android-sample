@@ -1,8 +1,10 @@
 package kr.lazybird.myapplication
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
+import android.util.TimeUtils
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -15,6 +17,13 @@ import org.json.JSONObject
 import kotlin.math.max
 import kotlin.math.min
 import android.view.ViewGroup
+import android.widget.ProgressBar
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.time.LocalDateTime
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.abs
 
 
@@ -29,6 +38,8 @@ class StreamActivity : AppCompatActivity() {
     private var downRawY: Float = 0.0f
     private var dX: Float = 0.0f
     private var dY: Float = 0.0f
+    private var pressTime: Long? = null
+    private var fbsMoved: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,6 +90,7 @@ class StreamActivity : AppCompatActivity() {
             true
         }
         fab_main.setOnTouchListener { v: View, event:MotionEvent ->
+            Log.d("SWS", "setOnTouchListener ${event.action}")
 
             when(event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -86,31 +98,55 @@ class StreamActivity : AppCompatActivity() {
                     downRawY = event.rawY
                     dX = v.x - downRawX
                     dY = v.y - downRawY
+                    pressTime = Calendar.getInstance().timeInMillis
+                    fbsMoved = false
                 }
                 MotionEvent.ACTION_MOVE -> {
 
-                    Log.d("SWS", "fab_main setOnTouchListener before ($dX, $dY), (${v.x}, ${v.y}) ${event.x} ${event.y}")
                     val viewParent = v.parent as View
                     val parentWidth = viewParent.width
                     val parentHeight = viewParent.height
 
+                    val upTime = Calendar.getInstance().timeInMillis
+
+//                    Log.d("SWS", "fab_main setOnTouchListener before ($dX, $dY), (${v.x}, ${v.y}) ${event.x} ${event.y} ${upTime.minus(pressTime!!)}")
+
+                    val upRawX = event.rawX
+                    val upRawY = event.rawY
+                    val upDX = upRawX - downRawX
+                    val upDY = upRawY - downRawY
+
+                    if (abs(upDX) >= v.width || abs(upDY) >= v.height) {
+                        fbsMoved = true
+                    }
+                    if ( upTime.minus(pressTime!!) > 500 && !fbsMoved ) {
+                        if (abs(upDX) < v.width && abs(upDY) < v.height) { // A click
+                            val streamMenu = findViewById<ConstraintLayout>(R.id.stream_menu)
+                            val streamFabLayout = findViewById<CoordinatorLayout>(R.id.stream_fab_layout)
+                            streamMenu.visibility = View.VISIBLE
+                            streamFabLayout.visibility = View.GONE
+                        } else {
+                            fbsMoved = true
+                        }
+                    }
+
                     var newX = event.rawX + dX
                     newX = max(
-                        16.0f,
+                        1.0f,
                         newX
                     ) // Don't allow the FAB past the left hand side of the parent
                     newX = min(
-                        parentWidth - 64.0f,
+                        parentWidth - v.width.toFloat(),
                         newX
                     ) // Don't allow the FAB past the right hand side of the parent
 
                     var newY = event.rawY + dY
                     newY = max(
-                        16.0f,
+                        1.0f,
                         newY
                     ) // Don't allow the FAB past the top of the parent
                     newY = min(
-                        parentHeight - 64.0f,
+                        parentHeight - v.height.toFloat(),
                         newY
                     ) // Don't allow the FAB past the bottom of the parent
 
@@ -124,23 +160,40 @@ class StreamActivity : AppCompatActivity() {
 
                     if (v.layoutParams is ViewGroup.MarginLayoutParams) {
                         val p = v.layoutParams as ViewGroup.MarginLayoutParams
-                        p.setMargins(16, 16, 16, 16)
+                        p.setMargins(0, 0, 0, 0)
                         v.requestLayout()
                     }
                 }
                 MotionEvent.ACTION_UP -> {
-                    val upRawX = event.x
-                    val upRawY = event.y
+                    pressTime = -1
+                    if ( !fab_main.isOrWillBeHidden ) {
+                        val upRawX = event.rawX
+                        val upRawY = event.rawY
 
-                    val upDX = upRawX - downRawX
-                    val upDY = upRawY - downRawY
+                        val upDX = upRawX - downRawX
+                        val upDY = upRawY - downRawY
 
-                    if (abs(upDX) < 1.0f && abs(upDY) < 1.0f) { // A click
-                        Log.d("SWS", "Click")
+                        if (abs(upDX) < 1.0f && abs(upDY) < 1.0f) { // A click
+                            var data = JSONObject()
+                            data.put("command", "switch")
+                            val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
+                            mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+                        }
                     }
                 }
             }
             false
+        }
+        fab_close.setOnTouchListener { v: View, event: MotionEvent ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    val streamMenu = findViewById<ConstraintLayout>(R.id.stream_menu)
+                    val streamFabLayout = findViewById<CoordinatorLayout>(R.id.stream_fab_layout)
+                    streamMenu.visibility = View.GONE
+                    streamFabLayout.visibility = View.VISIBLE
+                }
+            }
+            true
         }
 //        checkPermission()
         connectStreamServer()
