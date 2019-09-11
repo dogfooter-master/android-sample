@@ -173,7 +173,9 @@ class StreamActivity : AppCompatActivity() {
                         val upDX = upRawX - downRawX
                         val upDY = upRawY - downRawY
 
-                        if (abs(upDX) < 1.0f && abs(upDY) < 1.0f) { // A click
+                        val upTime = Calendar.getInstance().timeInMillis
+
+                        if (abs(upDX) < 1.0f && abs(upDY) < 1.0f && !fbsMoved && upTime.minus(pressTime!!) < 500) {
                             var data = JSONObject()
                             data.put("command", "switch")
                             val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
@@ -183,6 +185,39 @@ class StreamActivity : AppCompatActivity() {
                 }
             }
             false
+        }
+        fab_back.setOnTouchListener { v: View, event: MotionEvent ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    var data = JSONObject()
+                    data.put("command", "back")
+                    val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+                }
+            }
+            true
+        }
+        fab_home.setOnTouchListener { v: View, event: MotionEvent ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    var data = JSONObject()
+                    data.put("command", "home")
+                    val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+                }
+            }
+            true
+        }
+        fab_recent.setOnTouchListener { v: View, event: MotionEvent ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    var data = JSONObject()
+                    data.put("command", "recent")
+                    val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+                }
+            }
+            true
         }
         fab_close.setOnTouchListener { v: View, event: MotionEvent ->
             when (event.action) {

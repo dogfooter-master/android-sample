@@ -82,7 +82,9 @@ class WebRTC internal constructor(private val callbacks: WebRTCCallbacks) : Peer
     override fun sendData(data: JSONObject) {
         val message = data.toString()
         val data = ByteBuffer.wrap("$message".toByteArray(Charset.defaultCharset()))
-        mDataChannel!!.send(DataChannel.Buffer(data, false))
+        if ( mDataChannel != null ) {
+            mDataChannel!!.send(DataChannel.Buffer(data, false))
+        }
     }
 
     override fun createOffer() {
