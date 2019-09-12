@@ -165,7 +165,6 @@ class StreamActivity : AppCompatActivity() {
                     }
                 }
                 MotionEvent.ACTION_UP -> {
-                    pressTime = -1
                     if ( !fab_main.isOrWillBeHidden ) {
                         val upRawX = event.rawX
                         val upRawY = event.rawY
@@ -182,6 +181,7 @@ class StreamActivity : AppCompatActivity() {
                             mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
                         }
                     }
+                    pressTime = -1
                 }
             }
             false
