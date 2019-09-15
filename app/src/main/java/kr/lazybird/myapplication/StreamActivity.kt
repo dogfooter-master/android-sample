@@ -1,10 +1,13 @@
 package kr.lazybird.myapplication
 
+import android.annotation.SuppressLint
 import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
 import android.util.TimeUtils
+import android.view.Gravity.CENTER
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -17,7 +20,10 @@ import org.json.JSONObject
 import kotlin.math.max
 import kotlin.math.min
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.FrameLayout
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -53,6 +59,13 @@ class StreamActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN
         )
+//        window.decorView.apply {
+//            // Hide both the navigation bar and the status bar.
+//            // SYSTEM_UI_FLAG_FULLSCREEN is only available on Android 4.1 and higher, but as
+//            // a general rule, you should design your app to hide the status bar whenever you
+//            // hide the navigation bar.
+//            systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN
+//        }
         setContentView(R.layout.activity_stream)
         remote_view_container.setOnTouchListener { _: View, event:MotionEvent ->
             val v = findViewById<RelativeLayout>(R.id.remote_view_container)
@@ -61,8 +74,8 @@ class StreamActivity : AppCompatActivity() {
             val tempY = lastY
             lastX = event.x
             lastY = event.y
-            val posX = event.x / v.width.toFloat()
-            val posY = event.y / v.height.toFloat()
+            val posX = event.x.div(v.width.toFloat())
+            val posY = event.y.div(v.height.toFloat())
             Log.d("SWS", "setOnTouchListener $posX, $posY")
             var data = JSONObject()
             data.put("x", posX.toString())
@@ -116,10 +129,9 @@ class StreamActivity : AppCompatActivity() {
                     val upDX = upRawX - downRawX
                     val upDY = upRawY - downRawY
 
-                    if (abs(upDX) >= v.width || abs(upDY) >= v.height) {
-                        fbsMoved = true
-                    }
+                    Log.d("SWS", "DEBUG1 ${upTime.minus(pressTime!!)} $fbsMoved")
                     if ( upTime.minus(pressTime!!) > 500 && !fbsMoved ) {
+                        Log.d("SWS", "DEBUG2 ${upTime.minus(pressTime!!)} ${abs(upDX)} ${abs(upDY)} ${v.width} ${v.height}")
                         if (abs(upDX) < v.width && abs(upDY) < v.height) { // A click
                             val streamMenu = findViewById<ConstraintLayout>(R.id.stream_menu)
                             val streamFabLayout = findViewById<CoordinatorLayout>(R.id.stream_fab_layout)
@@ -239,6 +251,27 @@ class StreamActivity : AppCompatActivity() {
 //        ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_CAMERA_PERMISSION)
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        if ( newConfig!!.orientation == Configuration.ORIENTATION_LANDSCAPE ) {
+
+            // TODO: 세로가 더 길 경우
+//            val remoteViewFrameLayout = this@StreamActivity.findViewById(R.id.remote_view_frame_layout) as FrameLayout
+//            var lp = CoordinatorLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+//            lp.width = (remoteViewFrameLayout.width.toFloat() * (9.0f/16.0f)).toInt()
+//            lp.gravity = CENTER
+//            remoteViewFrameLayout.layoutParams = lp
+        } else if ( newConfig!!.orientation == Configuration.ORIENTATION_PORTRAIT ) {
+
+            // TODO: 가로가 더 길 경우
+//            val remoteViewFrameLayout = this@StreamActivity.findViewById(R.id.remote_view_frame_layout) as FrameLayout
+//            var lp = CoordinatorLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+//            lp.height = (remoteViewFrameLayout.height.toFloat() * (9.0f/16.0f)).toInt()
+//            lp.gravity = CENTER
+//            remoteViewFrameLayout.layoutParams = lp
+        }
+    }
+
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         val text  = "(${event?.x}, ${event?.y})"
         val v = findViewById<RelativeLayout>(R.id.remote_view_container)
@@ -293,7 +326,7 @@ class StreamActivity : AppCompatActivity() {
     private fun createConnection(): Connection {
         val connection = Connection("", "", "", mDerMateWebSocket!!, object : ConnectionCallbacks {
             override fun onAddedStream(mediaStream: MediaStream) {
-                Log.d("SWS", "onAddedStream")
+                Log.d("SWS", "onAddedStream ${mediaStream.videoTracks.size}")
                 if (mediaStream.videoTracks.size == 0) {
                     Log.e("createConnection", "noVideoTracks")
                     return
@@ -310,12 +343,11 @@ class StreamActivity : AppCompatActivity() {
                     val params = RelativeLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
 //                    params.columnSpec = GridLayout.spec(col, 1)
 //                    params.rowSpec = GridLayout.spec(row, 1)
-//                    params.width = 1600
+//                    params.width = 900
 //                    params.height = 900
 //                    params.leftMargin = 10
 //                    params.rightMargin = 10
 //                    params.topMargin = 10
-
                     remoteRenderer.layoutParams = params
 
                     val videoRenderer = setupRenderer(remoteRenderer)
