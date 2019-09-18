@@ -11,12 +11,12 @@ internal interface ConnectionCallbacks {
 
 interface ConnectionInterface {
 
-    fun targetToken(): String
-    fun setTargetToken(targetToken: String)
+    fun opponentDAT(): String
+    fun setOpponentDAT(opponentDAT: String)
     fun accessToken(): String
     fun setAccessToken(accessToken: String)
-    fun clientToken(): String
-    fun setClientToken(clientToken: String)
+    fun setDeviceAccessToken(deviceAccessToken: String)
+    fun deviceAccessToken(): String
     fun publishOffer(channelType: String, label: String)
     fun receiveOffer(channelType: String, label: String, sdp: String)
     fun receiveAnswer(channelType: String, label: String, sdp: String)

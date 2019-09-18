@@ -16,9 +16,19 @@ class ScrollingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scrolling)
-
+    }
+    override fun onBackPressed() {
+        finish()
+        super.onBackPressed()
+    }
+    override fun onResume() {
+        refreshComputerList()
+        super.onResume()
+    }
+    private fun refreshComputerList() {
         val account = intent.getStringExtra(EXTRA_ACCOUNT)
         val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
+        val deviceAccessToken = intent.getStringExtra(EXTRA_DEVICE_ACCESS_TOKEN)
         Log.d("SWS", "ScrollingActivity $account, $accessToken")
 
         val pcList: ArrayList<Agent> = ArrayList()
@@ -44,7 +54,8 @@ class ScrollingActivity : AppCompatActivity() {
                                 val intent =
                                     Intent(applicationContext, StreamActivity::class.java).apply {
                                         putExtra(EXTRA_ACCESS_TOKEN, accessToken)
-                                        putExtra(EXTRA_TARGET_TOKEN, pcList[position].clientToken)
+                                        putExtra(EXTRA_DEVICE_ACCESS_TOKEN, deviceAccessToken)
+                                        putExtra(EXTRA_OPPONENT_DAT, pcList[position].deviceAccessToken)
                                     }
                                 startActivity(intent)
                             }
@@ -56,9 +67,5 @@ class ScrollingActivity : AppCompatActivity() {
                 Log.d("SWS", "DEBUG-2 $message")
             }
         }
-    }
-    override fun onBackPressed() {
-        finish()
-        super.onBackPressed()
     }
 }

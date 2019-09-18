@@ -6,8 +6,8 @@ import org.webrtc.MediaStream
 
 class Connection internal constructor(
     private var _accessToken: String,
-    private var _targetToken: String,
-    private var _clientToken: String,
+    private var _opponentDAT: String,
+    private var _deviceAccessToken: String,
     private val ws: DerMateWebSocketInterface,
     private val callbacks: ConnectionCallbacks) : ConnectionInterface {
 
@@ -22,7 +22,7 @@ class Connection internal constructor(
                     val json = JSONObject()
                     json.put("sdp", sdp)
                     json.put("type", "offer")
-                    ws.publishOffer(accessToken(), targetToken(), json, "stream", "")
+                    ws.publishOffer(accessToken(), opponentDAT(), json, "stream", "")
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -33,7 +33,7 @@ class Connection internal constructor(
                     val json = JSONObject()
                     json.put("sdp", sdp)
                     json.put("type", "answer")
-                    ws.publishAnswer(accessToken(), targetToken(), json, "stream", "")
+                    ws.publishAnswer(accessToken(), opponentDAT(), json, "stream", "")
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -51,7 +51,7 @@ class Connection internal constructor(
                     json.put("candidate", sdp)
                     json.put("sdpMid", sdpMid)
                     json.put("sdpMLineIndex", sdpMLineIndex)
-                    ws.publishCandidate(accessToken(), targetToken(), json, "stream", "")
+                    ws.publishCandidate(accessToken(), opponentDAT(), json, "stream", "")
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -64,7 +64,7 @@ class Connection internal constructor(
                     val json = JSONObject()
                     json.put("sdp", sdp)
                     json.put("type", "offer")
-                    ws.publishOffer(accessToken(), targetToken(), json, "data", accessToken())
+                    ws.publishOffer(accessToken(), opponentDAT(), json, "data", accessToken())
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -75,7 +75,7 @@ class Connection internal constructor(
                     val json = JSONObject()
                     json.put("sdp", sdp)
                     json.put("type", "answer")
-                    ws.publishAnswer(accessToken(), targetToken(), json, "data", accessToken())
+                    ws.publishAnswer(accessToken(), opponentDAT(), json, "data", accessToken())
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -93,7 +93,7 @@ class Connection internal constructor(
                     json.put("candidate", sdp)
                     json.put("sdpMid", sdpMid)
                     json.put("sdpMLineIndex", sdpMLineIndex)
-                    ws.publishCandidate(accessToken(), targetToken(), json, "data", accessToken())
+                    ws.publishCandidate(accessToken(), opponentDAT(), json, "data", accessToken())
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -106,7 +106,7 @@ class Connection internal constructor(
                     val json = JSONObject()
                     json.put("sdp", sdp)
                     json.put("type", "offer")
-                    ws.publishOffer(accessToken(), targetToken(), json, "data", clientToken())
+                    ws.publishOffer(accessToken(), opponentDAT(), json, "data", deviceAccessToken())
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -117,7 +117,7 @@ class Connection internal constructor(
                     val json = JSONObject()
                     json.put("sdp", sdp)
                     json.put("type", "answer")
-                    ws.publishAnswer(accessToken(), targetToken(), json, "data", clientToken())
+                    ws.publishAnswer(accessToken(), opponentDAT(), json, "data", deviceAccessToken())
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -135,7 +135,7 @@ class Connection internal constructor(
                     json.put("candidate", sdp)
                     json.put("sdpMid", sdpMid)
                     json.put("sdpMLineIndex", sdpMLineIndex)
-                    ws.publishCandidate(accessToken(), targetToken(), json, "data", clientToken())
+                    ws.publishCandidate(accessToken(), opponentDAT(), json, "data", deviceAccessToken())
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -154,22 +154,21 @@ class Connection internal constructor(
        _accessToken = accessToken
     }
 
-    override fun targetToken(): String {
-        return _targetToken
+    override fun opponentDAT(): String {
+        return _opponentDAT
     }
 
-    override fun setTargetToken(targetToken: String) {
-        _targetToken = targetToken
+    override fun setOpponentDAT(opponentDAT: String) {
+        _opponentDAT = opponentDAT
     }
 
-    override fun clientToken(): String {
-        return _clientToken
+    override fun deviceAccessToken(): String {
+        return _deviceAccessToken
     }
 
-    override fun setClientToken(clientToken: String) {
-        _clientToken = clientToken
+    override fun setDeviceAccessToken(deviceAccessToken: String) {
+        _deviceAccessToken = deviceAccessToken
     }
-
     override fun publishOffer(channelType: String, label: String) {
         when (channelType) {
             "data" -> {

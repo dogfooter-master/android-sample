@@ -45,7 +45,9 @@ class StreamActivity : AppCompatActivity() {
     private var dX: Float = 0.0f
     private var dY: Float = 0.0f
     private var pressTime: Long? = null
+    private var downTime: Long? = null
     private var fbsMoved: Boolean = false
+    private var mDeviceAccessToken: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +69,9 @@ class StreamActivity : AppCompatActivity() {
 //            systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN
 //        }
         setContentView(R.layout.activity_stream)
+
+        mDeviceAccessToken = intent.getStringExtra(EXTRA_DEVICE_ACCESS_TOKEN)
+
         remote_view_container.setOnTouchListener { _: View, event:MotionEvent ->
             val v = findViewById<RelativeLayout>(R.id.remote_view_container)
 //            Log.d("SWS", "setOnTouchListener ${event.x}, ${event.y}, ${v.width}, ${v.height}")
@@ -80,30 +85,29 @@ class StreamActivity : AppCompatActivity() {
             var data = JSONObject()
             data.put("x", posX.toString())
             data.put("y", posY.toString())
-            val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
             when(event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     data.put("command", "mouse_down")
 //                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, "")
-                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, mDeviceAccessToken!!)
                 }
                 MotionEvent.ACTION_MOVE -> {
                     data.put("command", "mouse_move")
                     if ( tempX != event.x || tempY != event.y ) {
 //                        mDerMateWebSocket!!.sendWebRTCDataChannel(data, "")
-                        mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+                        mDerMateWebSocket!!.sendWebRTCDataChannel(data, mDeviceAccessToken!!)
                     }
                 }
                 MotionEvent.ACTION_UP -> {
                     data.put("command", "mouse_up")
 //                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, "")
-                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, mDeviceAccessToken!!)
                 }
             }
             true
         }
         fab_main.setOnTouchListener { v: View, event:MotionEvent ->
-            Log.d("SWS", "setOnTouchListener ${event.action}")
+//            Log.d("SWS", "setOnTouchListener ${event.action}")
 
             when(event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -111,8 +115,23 @@ class StreamActivity : AppCompatActivity() {
                     downRawY = event.rawY
                     dX = v.x - downRawX
                     dY = v.y - downRawY
-                    pressTime = Calendar.getInstance().timeInMillis
+
+                    val justDownTime = Calendar.getInstance().timeInMillis
+
+                    if ( downTime != null ) {
+                        Log.d("SWS", "DOWN: ${justDownTime.minus(downTime!!)}")
+                    }
+//                    if ( downTime != null && justDownTime.minus(downTime!!) < 300 ) {
+//                        var data = JSONObject()
+//                        data.put("command", "switch")
+//                        mDerMateWebSocket!!.sendWebRTCDataChannel(data, mDeviceAccessToken!!)
+//                    }
+
+                    downTime = justDownTime
+                    pressTime = downTime
                     fbsMoved = false
+                    v.scaleX = 0.9f
+                    v.scaleY = 0.9f
                 }
                 MotionEvent.ACTION_MOVE -> {
 
@@ -128,15 +147,14 @@ class StreamActivity : AppCompatActivity() {
                     val upRawY = event.rawY
                     val upDX = upRawX - downRawX
                     val upDY = upRawY - downRawY
-
-                    Log.d("SWS", "DEBUG1 ${upTime.minus(pressTime!!)} $fbsMoved")
+//                    Log.d("SWS", "DEBUG1 ${upTime.minus(pressTime!!)} $fbsMoved")
                     if ( upTime.minus(pressTime!!) > 500 && !fbsMoved ) {
-                        Log.d("SWS", "DEBUG2 ${upTime.minus(pressTime!!)} ${abs(upDX)} ${abs(upDY)} ${v.width} ${v.height}")
+//                        Log.d("SWS", "DEBUG2 ${upTime.minus(pressTime!!)} ${abs(upDX)} ${abs(upDY)} ${v.width} ${v.height}")
                         if (abs(upDX) < v.width && abs(upDY) < v.height) { // A click
-                            val streamMenu = findViewById<ConstraintLayout>(R.id.stream_menu)
-                            val streamFabLayout = findViewById<CoordinatorLayout>(R.id.stream_fab_layout)
-                            streamMenu.visibility = View.VISIBLE
-                            streamFabLayout.visibility = View.GONE
+//                            val streamMenu = findViewById<ConstraintLayout>(R.id.stream_menu)
+//                            val streamFabLayout = findViewById<CoordinatorLayout>(R.id.stream_fab_layout)
+//                            streamMenu.visibility = View.VISIBLE
+//                            streamFabLayout.visibility = View.GONE
                         } else {
                             fbsMoved = true
                         }
@@ -186,14 +204,20 @@ class StreamActivity : AppCompatActivity() {
 
                         val upTime = Calendar.getInstance().timeInMillis
 
-                        if (abs(upDX) < 1.0f && abs(upDY) < 1.0f && !fbsMoved && upTime.minus(pressTime!!) < 500) {
-                            var data = JSONObject()
-                            data.put("command", "switch")
-                            val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
-                            mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+                        if (abs(upDX) < 1.0f && abs(upDY) < 1.0f && !fbsMoved) {
+                            val streamMenu = findViewById<ConstraintLayout>(R.id.stream_menu)
+                            val streamFabLayout = findViewById<CoordinatorLayout>(R.id.stream_fab_layout)
+                            streamMenu.visibility = View.VISIBLE
+                            streamFabLayout.visibility = View.GONE
+//                            var data = JSONObject()
+//                            data.put("command", "switch")
+//                            val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
+//                            mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
                         }
                     }
                     pressTime = -1
+                    v.scaleX = 1.0f
+                    v.scaleY = 1.0f
                 }
             }
             false
@@ -203,8 +227,13 @@ class StreamActivity : AppCompatActivity() {
                 MotionEvent.ACTION_DOWN -> {
                     var data = JSONObject()
                     data.put("command", "back")
-                    val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
-                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, mDeviceAccessToken!!)
+                    v.scaleX = 0.9f
+                    v.scaleY = 0.9f
+                }
+                MotionEvent.ACTION_UP -> {
+                    v.scaleX = 1.0f
+                    v.scaleY = 1.0f
                 }
             }
             true
@@ -214,8 +243,13 @@ class StreamActivity : AppCompatActivity() {
                 MotionEvent.ACTION_DOWN -> {
                     var data = JSONObject()
                     data.put("command", "home")
-                    val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
-                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, mDeviceAccessToken!!)
+                    v.scaleX = 0.9f
+                    v.scaleY = 0.9f
+                }
+                MotionEvent.ACTION_UP -> {
+                    v.scaleX = 1.0f
+                    v.scaleY = 1.0f
                 }
             }
             true
@@ -225,8 +259,29 @@ class StreamActivity : AppCompatActivity() {
                 MotionEvent.ACTION_DOWN -> {
                     var data = JSONObject()
                     data.put("command", "recent")
-                    val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
-                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, accessToken)
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, mDeviceAccessToken!!)
+                    v.scaleX = 0.9f
+                    v.scaleY = 0.9f
+                }
+                MotionEvent.ACTION_UP -> {
+                    v.scaleX = 1.0f
+                    v.scaleY = 1.0f
+                }
+            }
+            true
+        }
+        fab_next.setOnTouchListener { v: View, event: MotionEvent ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    var data = JSONObject()
+                    data.put("command", "switch")
+                    mDerMateWebSocket!!.sendWebRTCDataChannel(data, mDeviceAccessToken!!)
+                    v.scaleX = 0.9f
+                    v.scaleY = 0.9f
+                }
+                MotionEvent.ACTION_UP -> {
+                    v.scaleX = 1.0f
+                    v.scaleY = 1.0f
                 }
             }
             true
@@ -238,6 +293,12 @@ class StreamActivity : AppCompatActivity() {
                     val streamFabLayout = findViewById<CoordinatorLayout>(R.id.stream_fab_layout)
                     streamMenu.visibility = View.GONE
                     streamFabLayout.visibility = View.VISIBLE
+                    v.scaleX = 0.9f
+                    v.scaleY = 0.9f
+                }
+                MotionEvent.ACTION_UP -> {
+                    v.scaleX = 1.0f
+                    v.scaleY = 1.0f
                 }
             }
             true
@@ -315,8 +376,9 @@ class StreamActivity : AppCompatActivity() {
         WebRTC.setup(this, eglBase)
 
         val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
-        val targetToken = intent.getStringExtra(EXTRA_TARGET_TOKEN)
-        mDerMateWebSocket = DerMateWebSocket(resources.getString(R.string.host), accessToken, targetToken)
+        val deviceAccessToken = intent.getStringExtra(EXTRA_DEVICE_ACCESS_TOKEN)
+        val opponentDAT = intent.getStringExtra(EXTRA_OPPONENT_DAT)
+        mDerMateWebSocket = DerMateWebSocket(resources.getString(R.string.host), accessToken, deviceAccessToken, opponentDAT)
         val conn = createConnection()
         mDerMateWebSocket!!.connect(conn)
     }
@@ -356,6 +418,9 @@ class StreamActivity : AppCompatActivity() {
                     val remoteViewContainer = this@StreamActivity.findViewById(R.id.remote_view_container) as RelativeLayout
                     remoteViewContainer.addView(remoteRenderer)
 
+                    remoteRenderer.setOnSystemUiVisibilityChangeListener {
+                        Log.d("SWS", "setOnSystemUiVisibilityChangeListener")
+                    }
                     remoteIndex += 1
                 }
             }

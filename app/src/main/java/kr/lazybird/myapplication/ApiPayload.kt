@@ -12,7 +12,7 @@ inline fun <reified T: JSONConvertable> String.toObject(): T = Gson().fromJson(t
 
 data class Agent (
     @SerializedName("name") val name: String,
-    @SerializedName("client_token") val clientToken: String,
+    @SerializedName("device_access_token") val deviceAccessToken: String,
     @SerializedName("status") val status: String
 ) : JSONConvertable
 

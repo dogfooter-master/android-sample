@@ -1,6 +1,7 @@
 package kr.lazybird.myapplication
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -8,22 +9,32 @@ import android.util.Log
 import android.view.WindowManager
 import kr.lazybird.myapplication.ui.login.LoginActivity
 import org.webrtc.EglBase
-import android.widget.Toast
-
+import java.io.*
+import android.content.Context.MODE_PRIVATE
+import androidx.core.app.ComponentActivity
+import androidx.core.app.ComponentActivity.ExtraData
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import org.json.JSONObject
+import java.util.*
 
 
 const val EXTRA_ACCOUNT = "kr.lazybird.myapplication.ACCOUNT"
 const val EXTRA_PASSWORD = "kr.lazybird.myapplication.PASSWORD"
 const val EXTRA_ACCESS_TOKEN = "kr.lazybird.myapplication.ACCESS_TOKEN"
 const val EXTRA_TARGET_TOKEN = "kr.lazybird.myapplication.CLIENT_TOKEN"
+const val EXTRA_DEVICE_ACCESS_TOKEN = "kr.lazybird.myapplication.DEVICE_ACCESS_TOKEN"
+const val EXTRA_OPPONENT_DAT = "kr.lazybird.myapplication.OPPONENT_DAT"
 const val EXTRA_FINISH = "kr.lazybird.myapplication.FINISH"
 const val REQUEST_CODE_LOGIN = 1
 const val REQUEST_CODE_AGENT_LIST = 2
 
+
 class MainActivity : AppCompatActivity() {
 
-    private var mDerMateWebSocket: DerMateWebSocket? = null
-    private val eglBase = EglBase.create()
+//    private var mDerMateWebSocket: DerMateWebSocket? = null
+//    private val eglBase = EglBase.create()
+    private var mDeviceAccessToken: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +51,47 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         Log.d("SWS", "MainActivity")
+
+
+        val buffer = StringBuffer()
+        var data: String? = null
+        var fis: FileInputStream? = null
+        try {
+            fis = openFileInput("device.dat")
+            val iReader = BufferedReader(InputStreamReader(fis))
+
+            data = iReader.readLine()
+            while (data != null) {
+                buffer.append(data)
+                data = iReader.readLine()
+            }
+            buffer.append("\n")
+            iReader.close()
+
+            val obj = JSONObject(buffer.toString())
+            mDeviceAccessToken = obj.getString("device_access_token")
+        } catch (e: FileNotFoundException) {
+            mDeviceAccessToken = UUID.randomUUID().toString().replace("-", "")
+            val obj = JSONObject()
+            obj.put("device_access_token", mDeviceAccessToken)
+            var fos: FileOutputStream? = null
+            try {
+                fos = openFileOutput("device.dat", Context.MODE_PRIVATE)
+                fos!!.write(obj.toString().toByteArray())
+                fos.close()
+            } catch (e: FileNotFoundException) {
+                e.printStackTrace()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        Log.d("SWS", "read file: $mDeviceAccessToken")
+
+
         val intent = Intent(this, LoginActivity::class.java)
         startActivityForResult(intent, REQUEST_CODE_LOGIN)
 
@@ -87,6 +139,7 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(this, ScrollingActivity::class.java).apply {
                     putExtra(EXTRA_ACCOUNT, account)
                     putExtra(EXTRA_ACCESS_TOKEN, accessToken)
+                    putExtra(EXTRA_DEVICE_ACCESS_TOKEN, mDeviceAccessToken)
                 }
                 startActivityForResult(intent, REQUEST_CODE_AGENT_LIST)
             }
@@ -95,4 +148,5 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(intent, REQUEST_CODE_LOGIN)
         }
     }
+
 }
