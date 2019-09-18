@@ -19,7 +19,7 @@ sealed class ApiRoute {
             return "https://flowork.ai"
         }
 
-    data class Signin(var account: String, var password: String, var ctx: Context) : ApiRoute()
+    data class Signin(var account: String, var password: String, var macAddress: String, var ctx: Context) : ApiRoute()
     data class GetAgentList(var accessToken: String, var ctx: Context) : ApiRoute()
 //    data class GetUser(var ctx: Context) : ApiRoute()
 //    data class GetFeature(var householdID: Int, var ctx: Context) : ApiRoute()
@@ -40,7 +40,7 @@ sealed class ApiRoute {
             return when (this) {
                 is Signin -> {
                     Log.d("SWS", "params ${this.account}")
-                    hashMapOf(Pair("account", this.account), Pair("password", this.password))
+                    hashMapOf(Pair("account", this.account), Pair("password", this.password), Pair("mac_address", this.macAddress))
                 }
                 else -> hashMapOf()
             }
@@ -56,6 +56,8 @@ sealed class ApiRoute {
                     jsonData.put("service", "SignIn")
                     jsonData.put("account", this.account)
                     jsonData.put ("password", this.password)
+                    jsonData.put ("mac_address", this.macAddress)
+                    jsonData.put ("device_name", "android")
                 }
                 is GetAgentList -> {
                     jsonData.put("category", "private")

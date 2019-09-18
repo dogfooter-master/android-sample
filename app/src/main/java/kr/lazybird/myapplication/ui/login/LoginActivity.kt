@@ -36,6 +36,8 @@ class LoginActivity : AppCompatActivity() {
 //        )
         setContentView(R.layout.activity_login)
 
+
+        val macAddress = intent.getStringExtra(EXTRA_DEVICE_MAC_ADDRESS)
         val username = findViewById<EditText>(R.id.username)
         val password = findViewById<EditText>(R.id.password)
         val login = findViewById<Button>(R.id.login)
@@ -73,6 +75,7 @@ class LoginActivity : AppCompatActivity() {
                 intent.apply {
                     putExtra(EXTRA_ACCOUNT, username.text.toString())
                     putExtra(EXTRA_ACCESS_TOKEN, loginResult.accessToken)
+                    putExtra(EXTRA_DEVICE_ACCESS_TOKEN, loginResult.deviceAccessToken)
                 }
                 setResult(Activity.RESULT_OK, intent)
 
@@ -102,6 +105,7 @@ class LoginActivity : AppCompatActivity() {
                         loginViewModel.login(
                             username.text.toString(),
                             password.text.toString(),
+                            macAddress,
                             applicationContext
                         )
                 }
@@ -110,7 +114,7 @@ class LoginActivity : AppCompatActivity() {
 
             login.setOnClickListener {
                 loading.visibility = View.VISIBLE
-                loginViewModel.login(username.text.toString(), password.text.toString(), applicationContext)
+                loginViewModel.login(username.text.toString(), password.text.toString(), macAddress, applicationContext)
             }
         }
     }

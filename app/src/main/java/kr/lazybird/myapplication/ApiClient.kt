@@ -72,9 +72,9 @@ class ApiClient(private val ctx: Context) {
         return mRequestQueue
     }
 
-    fun signinUser(email: String, password: String, completion: (payload: Payload?, message: String) -> Unit) {
-        Log.d("SWS", "$email $password")
-        val route = ApiRoute.Signin(email, password, ctx)
+    fun signinUser(email: String, password: String, macAddress: String, completion: (payload: Payload?, message: String) -> Unit) {
+        Log.d("SWS", "$email $password $macAddress")
+        val route = ApiRoute.Signin(email, password, macAddress, ctx)
         this.performRequest(route) { success, response ->
             if (success) {
                 // this object creation could be created at the other class

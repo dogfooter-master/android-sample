@@ -20,7 +20,7 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
     private val _loginResult = MutableLiveData<LoginResult>()
     val loginResult: LiveData<LoginResult> = _loginResult
 
-    fun login(username: String, password: String, ctx: Context) {
+    fun login(username: String, password: String, macAddress: String, ctx: Context) {
         /*
         // can be launched in a separate asynchronous job
         val result = loginRepository.login(username, password)
@@ -32,11 +32,11 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
             _loginResult.value = LoginResult(error = R.string.login_failed)
         }
          */
-        ApiClient(ctx).signinUser(username, password) { payload, message ->
+        ApiClient(ctx).signinUser(username, password, macAddress) { payload, message ->
             if (payload != null) {
                 Log.d("SWS", "DEBUG-1 $payload")
                 _loginResult.value =
-                    LoginResult(success = LoggedInUserView(displayName = payload.account), accessToken = payload.accessToken)
+                    LoginResult(success = LoggedInUserView(displayName = payload.account), accessToken = payload.accessToken, deviceAccessToken = payload.deviceAccessToken)
             } else {
                 Log.d("SWS", "DEBUG-2 $message")
                 _loginResult.value = LoginResult(error = R.string.login_failed)

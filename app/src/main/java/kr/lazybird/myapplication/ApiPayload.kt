@@ -20,6 +20,7 @@ data class Payload (
     @SerializedName("account") val account: String,
     @SerializedName("password") val password: String,
     @SerializedName("access_token") val accessToken: String,
+    @SerializedName("device_access_token") val deviceAccessToken: String,
     @SerializedName("agent_list") val agentList: ArrayList<Agent>
 ) : JSONConvertable
 

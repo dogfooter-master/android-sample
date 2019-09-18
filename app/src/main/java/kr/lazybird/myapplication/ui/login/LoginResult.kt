@@ -6,5 +6,6 @@ package kr.lazybird.myapplication.ui.login
 data class LoginResult(
     val success: LoggedInUserView? = null,
     val error: Int? = null,
-    val accessToken: String? = null
+    val accessToken: String? = null,
+    val deviceAccessToken: String? = null
 )

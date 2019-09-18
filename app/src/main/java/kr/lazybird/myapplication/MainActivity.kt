@@ -24,6 +24,7 @@ const val EXTRA_PASSWORD = "kr.lazybird.myapplication.PASSWORD"
 const val EXTRA_ACCESS_TOKEN = "kr.lazybird.myapplication.ACCESS_TOKEN"
 const val EXTRA_TARGET_TOKEN = "kr.lazybird.myapplication.CLIENT_TOKEN"
 const val EXTRA_DEVICE_ACCESS_TOKEN = "kr.lazybird.myapplication.DEVICE_ACCESS_TOKEN"
+const val EXTRA_DEVICE_MAC_ADDRESS = "kr.lazybird.myapplication.DEVICE_MAC_ADDRESS"
 const val EXTRA_OPPONENT_DAT = "kr.lazybird.myapplication.OPPONENT_DAT"
 const val EXTRA_FINISH = "kr.lazybird.myapplication.FINISH"
 const val REQUEST_CODE_LOGIN = 1
@@ -34,7 +35,7 @@ class MainActivity : AppCompatActivity() {
 
 //    private var mDerMateWebSocket: DerMateWebSocket? = null
 //    private val eglBase = EglBase.create()
-    private var mDeviceAccessToken: String? = null
+    private var mDeviceMacAddress: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,11 +70,11 @@ class MainActivity : AppCompatActivity() {
             iReader.close()
 
             val obj = JSONObject(buffer.toString())
-            mDeviceAccessToken = obj.getString("device_access_token")
+            mDeviceMacAddress = obj.getString("device_mac_address")
         } catch (e: FileNotFoundException) {
-            mDeviceAccessToken = UUID.randomUUID().toString().replace("-", "")
+            mDeviceMacAddress = UUID.randomUUID().toString()
             val obj = JSONObject()
-            obj.put("device_access_token", mDeviceAccessToken)
+            obj.put("device_mac_address", mDeviceMacAddress)
             var fos: FileOutputStream? = null
             try {
                 fos = openFileOutput("device.dat", Context.MODE_PRIVATE)
@@ -89,10 +90,12 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
         }
 
-        Log.d("SWS", "read file: $mDeviceAccessToken")
+        Log.d("SWS", "read file: $mDeviceMacAddress")
 
 
-        val intent = Intent(this, LoginActivity::class.java)
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            putExtra(EXTRA_DEVICE_MAC_ADDRESS, mDeviceMacAddress)
+        }
         startActivityForResult(intent, REQUEST_CODE_LOGIN)
 
 //        buttonConnect.setOnClickListener {
@@ -131,6 +134,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 val account = data!!.getStringExtra(EXTRA_ACCOUNT)
                 val accessToken = data!!.getStringExtra(EXTRA_ACCESS_TOKEN)
+                val deviceAccessToken = data!!.getStringExtra(EXTRA_DEVICE_ACCESS_TOKEN)
                 Log.d("SWS", "--> account: $account, accessToken: $accessToken")
                 // The user picked a contact.
                 // The Intent's data Uri identifies which contact was selected.
@@ -139,7 +143,7 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(this, ScrollingActivity::class.java).apply {
                     putExtra(EXTRA_ACCOUNT, account)
                     putExtra(EXTRA_ACCESS_TOKEN, accessToken)
-                    putExtra(EXTRA_DEVICE_ACCESS_TOKEN, mDeviceAccessToken)
+                    putExtra(EXTRA_DEVICE_ACCESS_TOKEN, deviceAccessToken)
                 }
                 startActivityForResult(intent, REQUEST_CODE_AGENT_LIST)
             }
