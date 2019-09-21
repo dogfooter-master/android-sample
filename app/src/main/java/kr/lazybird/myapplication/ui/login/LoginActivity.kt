@@ -9,6 +9,7 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
@@ -44,7 +45,8 @@ class LoginActivity : AppCompatActivity() {
         val loading = findViewById<ProgressBar>(R.id.loading)
 
         if ( macAddress == null ) {
-            macAddress = ""
+            Log.e("SWS", "mac address is null")
+            return
         }
 
         loginViewModel = ViewModelProviders.of(this, LoginViewModelFactory())

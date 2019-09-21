@@ -204,7 +204,7 @@ class StreamActivity : AppCompatActivity() {
 
                         val upTime = Calendar.getInstance().timeInMillis
 
-                        if (abs(upDX) < 1.0f && abs(upDY) < 1.0f && !fbsMoved) {
+                        if (abs(upDX) < v.width*0.5f && abs(upDY) < v.height*0.5f && !fbsMoved) {
                             val streamMenu = findViewById<ConstraintLayout>(R.id.stream_menu)
                             val streamFabLayout = findViewById<CoordinatorLayout>(R.id.stream_fab_layout)
                             streamMenu.visibility = View.VISIBLE
@@ -378,6 +378,7 @@ class StreamActivity : AppCompatActivity() {
         val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
         val deviceAccessToken = intent.getStringExtra(EXTRA_DEVICE_ACCESS_TOKEN)
         val opponentDAT = intent.getStringExtra(EXTRA_OPPONENT_DAT)
+        Log.d("SWS", "DEBUG: $accessToken, $deviceAccessToken, $opponentDAT")
         mDerMateWebSocket = DerMateWebSocket(resources.getString(R.string.host), accessToken, deviceAccessToken, opponentDAT)
         val conn = createConnection()
         mDerMateWebSocket!!.connect(conn)

@@ -29,7 +29,7 @@ class ScrollingActivity : AppCompatActivity() {
         val account = intent.getStringExtra(EXTRA_ACCOUNT)
         val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
         val deviceAccessToken = intent.getStringExtra(EXTRA_DEVICE_ACCESS_TOKEN)
-        Log.d("SWS", "ScrollingActivity $account, $accessToken")
+        Log.d("SWS", "ScrollingActivity $account, $accessToken, $deviceAccessToken")
 
         val pcList: ArrayList<Agent> = ArrayList()
 
@@ -40,17 +40,13 @@ class ScrollingActivity : AppCompatActivity() {
                     for (e in payload.agentList) {
                         pcList.add(e)
                         // Creates a vertical Layout Manager
-                        pc_list.layoutManager =
-                            androidx.recyclerview.widget.LinearLayoutManager(this)
-
-                        // You can use GridLayoutManager if you want multiple columns. Enter the number of columns as a parameter.
-//        rv_animal_list.layoutManager = GridLayoutManager(this, 2)
+                        pc_list.layoutManager = LinearLayoutManager(this)
 
                         // Access the RecyclerView Adapter and load the data into it
                         val adapter = PcAdapter(pcList, this)
                         adapter.itemClick = object : PcAdapter.ItemClick {
                             override fun onClick(view: View, position: Int) {
-                                Log.d("SWS", "${pcList[position]}")
+                                Log.d("SWS", "DEBUG-22 ${pcList[position]}, deviceAccessToken: $deviceAccessToken")
                                 val intent =
                                     Intent(applicationContext, StreamActivity::class.java).apply {
                                         putExtra(EXTRA_ACCESS_TOKEN, accessToken)

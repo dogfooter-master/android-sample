@@ -72,6 +72,12 @@ class MainActivity : AppCompatActivity() {
             val obj = JSONObject(buffer.toString())
             mDeviceMacAddress = obj.getString("device_mac_address")
         } catch (e: FileNotFoundException) {
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        if ( mDeviceMacAddress == null || mDeviceMacAddress!!.isEmpty()) {
             mDeviceMacAddress = UUID.randomUUID().toString()
             val obj = JSONObject()
             obj.put("device_mac_address", mDeviceMacAddress)
@@ -85,13 +91,6 @@ class MainActivity : AppCompatActivity() {
             } catch (e: IOException) {
                 e.printStackTrace()
             }
-
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-        if ( mDeviceMacAddress == null) {
-            mDeviceMacAddress = ""
         }
         Log.d("SWS", "read file: $mDeviceMacAddress")
 
@@ -99,6 +98,7 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, LoginActivity::class.java).apply {
             putExtra(EXTRA_DEVICE_MAC_ADDRESS, mDeviceMacAddress)
         }
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         startActivityForResult(intent, REQUEST_CODE_LOGIN)
 
 //        buttonConnect.setOnClickListener {
@@ -138,7 +138,7 @@ class MainActivity : AppCompatActivity() {
                 val account = data!!.getStringExtra(EXTRA_ACCOUNT)
                 val accessToken = data!!.getStringExtra(EXTRA_ACCESS_TOKEN)
                 val deviceAccessToken = data!!.getStringExtra(EXTRA_DEVICE_ACCESS_TOKEN)
-                Log.d("SWS", "--> account: $account, accessToken: $accessToken")
+                Log.d("SWS", "--> account: $account, accessToken: $accessToken, deviceAccessToken: $deviceAccessToken")
                 // The user picked a contact.
                 // The Intent's data Uri identifies which contact was selected.
 
@@ -148,10 +148,14 @@ class MainActivity : AppCompatActivity() {
                     putExtra(EXTRA_ACCESS_TOKEN, accessToken)
                     putExtra(EXTRA_DEVICE_ACCESS_TOKEN, deviceAccessToken)
                 }
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 startActivityForResult(intent, REQUEST_CODE_AGENT_LIST)
             }
         } else if ( requestCode == REQUEST_CODE_AGENT_LIST ) {
-            val intent = Intent(this, LoginActivity::class.java)
+            val intent = Intent(this, LoginActivity::class.java).apply {
+                putExtra(EXTRA_DEVICE_MAC_ADDRESS, mDeviceMacAddress)
+            }
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             startActivityForResult(intent, REQUEST_CODE_LOGIN)
         }
     }

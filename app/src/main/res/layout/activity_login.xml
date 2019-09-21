@@ -13,7 +13,7 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/usernameTextInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/LoginTextInputLayoutStyle"
         android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
@@ -30,14 +30,13 @@
             android:hint="@string/prompt_email"
             android:inputType="textEmailAddress"
             android:outlineProvider="bounds"
-            android:selectAllOnFocus="true"
-            android:text="@string/account" />
+            android:selectAllOnFocus="true" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/passwordTextInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/LoginTextInputLayoutStyle"
         android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
@@ -56,7 +55,6 @@
             android:imeOptions="actionDone"
             android:inputType="textPassword"
             android:selectAllOnFocus="true"
-            android:text="@string/password"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

@@ -73,7 +73,7 @@ class ApiClient(private val ctx: Context) {
     }
 
     fun signinUser(email: String, password: String, macAddress: String, completion: (payload: Payload?, message: String) -> Unit) {
-        Log.d("SWS", "$email $password $macAddress")
+        Log.d("SWS", "signinUser: $email $password $macAddress")
         val route = ApiRoute.Signin(email, password, macAddress, ctx)
         this.performRequest(route) { success, response ->
             if (success) {
