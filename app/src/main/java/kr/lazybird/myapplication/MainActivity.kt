@@ -90,6 +90,9 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
         }
 
+        if ( mDeviceMacAddress == null) {
+            mDeviceMacAddress = ""
+        }
         Log.d("SWS", "read file: $mDeviceMacAddress")
 
 

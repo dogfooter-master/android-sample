@@ -6,15 +6,15 @@
     <string name="test">Test</string>
     <string name="connect">Login</string>
     <string name="peer">admin</string>
-    <string name="account">wonsuck_song@lazybird.kr</string>
+    <string name="account">admin</string>
     <string name="password">Hotice1234!</string>
     <string name="host">wss://flowork.ai/ws</string>
 
     <string name="title_activity_stream">stream</string>
     <string name="title_activity_login">Sign in</string>
-    <string name="prompt_email">Email</string>
+    <string name="prompt_email">ID</string>
     <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in">Sign in</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="welcome">"Welcome !"</string>
     <string name="invalid_username">Not a valid username</string>
@@ -22,5 +22,6 @@
     <string name="login_failed">"Login failed"</string>
     <string name="title_activity_scrolling">My Computers</string>
     <string name="action_settings">Settings</string>
+    <string name="register">Sign up</string>
 
 </resources>

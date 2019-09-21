@@ -37,6 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|right"
             android:visibility="visible"
+            app:backgroundTint="@color/colorYellow"
             app:srcCompat="@drawable/ic_menu_24px" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
@@ -54,6 +55,7 @@
             android:layout_marginRight="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/fab_home"
+            app:backgroundTint="@color/design_default_color_primary_dark"
             app:srcCompat="@drawable/ic_back_24px" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -64,6 +66,7 @@
             android:layout_marginEnd="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/fab_recent"
+            app:backgroundTint="@color/design_default_color_primary_dark"
             app:srcCompat="@drawable/ic_home_24px" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -74,6 +77,7 @@
             android:layout_marginEnd="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/fab_next"
+            app:backgroundTint="@color/design_default_color_primary_dark"
             app:srcCompat="@drawable/ic_recent_24px" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -84,6 +88,7 @@
             android:layout_marginEnd="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/fab_close"
+            app:backgroundTint="@color/colorYellow"
             app:srcCompat="@drawable/ic_next_24px" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -93,6 +98,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:backgroundTint="@color/design_default_color_primary_dark"
             app:srcCompat="@drawable/ic_close_24px" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
